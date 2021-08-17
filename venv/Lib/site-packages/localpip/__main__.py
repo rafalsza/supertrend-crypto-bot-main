@@ -1,0 +1,578 @@
+localpip_version = "0.0.12"
+__author__ = "Alex BOURG"
+__copyright__ = "Copyright 2021"
+__license__ = "GPL"
+__version__ = localpip_version
+__email__ = "alex.bourg@ca-cib.com"
+__status__ = "Production"
+
+import os
+import sys
+import subprocess, sys
+from tkinter import filedialog as fd
+from tkinter.messagebox import showinfo
+
+
+def exitapp():
+    os._exit(0)
+
+
+def info(error, specific):
+    print(
+        "*******************************************************************************************************"
+    )
+    print(
+        "## Please enter the command in the following format:\nOption 1: To install one package:::::::::::::::: "
+        "localpip <Action> <PackageName>\nOption 2: To install multiple packages:::::::::: localpip <Action> "
+        "<PackageName1> <PackageName2>\nOption 3: To install all avaialable packages:::: localpip <Action> all\n"
+    )
+    print("# Supported actions              : install/ uninstall/ upgrade")
+    print(
+        "# PackageName                    : one or multiple packages or all/ tout/ tous"
+    )
+    print("# To list all installed packages : localpip list")
+    print()
+    print("# To install local repo          : localpip install or localpip download")
+    print("# To update the local repo       : localpip update")
+    print("# Upgrade LocalPIP               : localpip upgrade")
+    print("# About LocalPIP                 : localpip about")
+
+    print("")
+    print("Examples:")
+    print("     localpip install pandas")
+    print("     localpip install pandas openpyxl Keras")
+    print("     localpip install all")
+    print("     localpip uninstall pandas")
+    print("     localpip upgrade pandas")
+    print("     localpip list")
+    print("")
+    print(error, specific)
+    print(
+        "*******************************************************************************************************"
+    )
+    exitapp()
+
+
+def install(package, action, path):
+    # Install command
+    if action == "install":
+        print()
+        print(
+            "*******************************************************************************************************"
+        )
+        print(f" Installing {package}...")
+        print()
+        print()
+
+        if "pip" in package:
+            os.system(
+                f"python -m pip install --upgrade pip --no-index --find-links {path}"
+            )
+
+        elif "numpy==1.19.2" in package and sys.version_info.minor == 9:
+            # pass
+            print(f" {package} is not compatible with Python 39, higher version will be installed.")
+
+        else:
+            # try:
+            #     os.system(f"pip {action} --no-index --find-links {path} {package}")
+            # except:
+            #     print(f"{package} is not available in the local repo")
+            #     print(f"Try installing using the regular pip > pip install {package}")
+            out = subprocess.Popen(
+                ["pip", action, "--no-index", "--find-links", path, package],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+            )
+            stdout, stderr = out.communicate()
+            x = stdout.decode("utf-8")
+            print(x)
+            if "Could not find a version that satisfies" in x:
+                print(f"{package} is not available in the local repo.")
+                print(f"Installing {package} from the internet...")
+                os.system(f"pip install {package}")
+                # pip = input(
+                #     "Will try to download it from the internet, do you want to continue? (yes/no): "
+                # ).lower()
+                # print(
+                #     "*******************************************************************************************************"
+                # )
+                # if pip.startswith("y"):
+                #     os.system(f"pip install {package}")
+            print()
+            print(f"*****{package} installation has been completed!*****")
+
+    # Uninstall command
+    elif action == "uninstall":
+        print()
+        print(
+            " *******************************************************************************************************"
+        )
+        print(f" Uninstalling {package} ...")
+        print()
+        print()
+        os.system(f"pip {action} {package} -y")
+        print()
+        print(f"*****{package} uninstallation has been completed!*****")
+
+    elif action == "download":
+        print()
+        print(
+            " *******************************************************************************************************"
+        )
+        print(f" Downloading {package} ...")
+        print()
+        print()
+        os.system(f"pip {action} {package}")
+        print()
+        print(f"*****{package} download has been completed!*****")
+
+    elif action == "wheel":
+        print()
+        print(
+            " *******************************************************************************************************"
+        )
+        print(f" Creating wheel for {package} ...")
+        print()
+        print()
+        os.system(f"pip {action} {package}")
+        print()
+        print(f"*****{package} wheel command has been completed!*****")
+
+    # Upgrade command
+    elif action == "upgrade":
+        print()
+        print(
+            " *******************************************************************************************************"
+        )
+        print(f" Upgrading {package} ...")
+        print()
+        print()
+        if "pip" in package:
+            os.system(
+                f"python -m pip install --upgrade pip --no-index --find-links {path}"
+            )
+        elif "numpy==1.19.2" in package and sys.version_info.minor == 9:
+            print(f"{package} is not compatible with current Python version")
+        else:
+            os.system(f"pip install --no-index --find-links {path} {package} -U")
+        print()
+        print(f"*****{package} upgrade has been completed!*****")
+
+
+def pip_list():
+    os.system(f"pip list")
+    exitapp()
+
+
+def localpip_remove():
+    # Remove the old packages folder
+    print(
+        "\n*******************************************************************************************************"
+    )
+    pip = input(
+        "localpip repository will be uninstalled, are you sure you want to continue? (yes/no): "
+    ).lower()
+    print()
+    if pip.startswith("y"):
+        command = 'if (Test-Path "C:\\Program64\\Python\\Packages") {Remove-Item "C:\\Program64\\Python\\Packages" -Recurse -Force}'
+        start_PS = powershell(command)
+        if start_PS.returncode != 0:
+            print("Error: command 1")
+        else:
+            print()
+            print(
+                "*******************************************************************************************************"
+            )
+            print("localpip repository has been uninstalled successfully!")
+            print(
+                "*******************************************************************************************************"
+            )
+            print()
+
+
+def localpip_about():
+    print()
+    print(
+        "*******************************************************************************************************"
+    )
+    print(f"LocalPIP version {localpip_version}")
+    print("LocalPIP is an offline package manager for Python...")
+    print("It solves packages dependencies conflict issues.")
+    print("No more errors while building wheel files or compiling C++.")
+    print(
+        "Internet access is required only for the first time of installation of LocalPIP repo."
+    )
+    print(
+        "Once LocalPIP repository is locally installed, you can install packages completely offline."
+    )
+    print(
+        "For technical issues or suggestions, please visit https://github.com/alexbourg/LocalPIP/issues"
+    )
+    print(
+        "*******************************************************************************************************"
+    )
+    print()
+
+
+def localpip_upgrade():
+    os.system(f"python -m pip install --upgrade localpip")
+
+
+def powershell(cmd):
+    completed = subprocess.run(["powershell", "-Command", cmd], capture_output=True)
+    return completed
+
+
+def download_packages(action):
+    path_script = os.path.realpath(__file__)
+    path_script = path_script[: path_script.rfind("\\")]
+    print(
+        "*******************************************************************************************************"
+    )
+
+    if action == "install":
+        print(
+            "Local repo is not installed. Installation could take up to 10 minutes, depending on your internet speed."
+        )
+    else:
+        print(
+            "Local repo will be updated. The update could take up to 10 minutes, depending on your internet speed."
+        )
+
+    download = input("Do you want to continue? (yes/no): ").lower()
+    print(
+        "*******************************************************************************************************"
+    )
+
+    if download.startswith("y"):
+        print()
+        print("Download is starting ...")
+        print()
+        command = 'if (Test-Path "C:\\Program64\\Python\\temp") {Remove-Item "C:\\Program64\\Python\\temp" -Recurse -Force}'
+        start_PS = powershell(command)
+        if start_PS.returncode != 0:
+            print("Error: command 0")
+
+        create_temp = r"New-Item -Path C:\Program64\Python -Name \"temp\" -ItemType directory -Force"
+        PS_create_temp = powershell(create_temp)
+
+        downloadPath = r"'C:\Program64\Python\temp\LocalPIP.zip'"
+        downloadUrl = (
+            "'https://codeload.github.com/alexbourg/LocalPIP/zip/refs/heads/main'"
+        )
+
+        download_with_proxy = f"$ProgressPreference = 'SilentlyContinue' ; $proxyurl = ([System.Net.WebRequest]::GetSystemWebproxy()).GetProxy({downloadUrl}) ; Invoke-WebRequest {downloadUrl} -Proxy $proxyurl -ProxyUseDefaultCredentials -OutFile {downloadPath}"
+
+        download_no_proxy = f"$ProgressPreference = 'SilentlyContinue' ; Invoke-WebRequest {downloadUrl} -OutFile {downloadPath}"
+
+        PS_download_noproxy = powershell(download_no_proxy)
+        if PS_download_noproxy.returncode != 0:
+            PS_download_proxy = powershell(download_with_proxy)
+            if PS_download_proxy.returncode != 0:
+                print("An error occured: %s", PS_download_proxy.stderr)
+                print()
+                print(
+                    "*******************************************************************************************************"
+                )
+                print(
+                    "LocalPIP couldn't be installed, please check your internet connection"
+                )
+                print("Or manually install the repository:")
+                print(
+                    "   1. Download the packages from this link: https://codeload.github.com/alexbourg/LocalPIP/zip/refs/heads/main"
+                )
+                print(
+                    '   2. Extract the zip file and copy the "Packages" folder to "C:\\Program64\\Python" path'
+                )
+                print(
+                    "*******************************************************************************************************"
+                )
+                command = 'if (Test-Path "C:\\Program64\\Python\\temp") {Remove-Item "C:\\Program64\\Python\\temp" -Recurse -Force}'
+                start_PS = powershell(command)
+                exitapp()
+            else:
+                proxy_status = 1
+                print("Download is almost complete.")
+                print()
+                print("Downloading the last package, please wait...")
+        else:
+            proxy_status = 0
+            print("Download is almost complete.")
+            print()
+            print("Downloading the last package, please wait...")
+
+        # Remove the old packages folder
+        command = 'if (Test-Path "C:\\Program64\\Python\\Packages") {Remove-Item "C:\\Program64\\Python\\Packages" -Recurse -Force}'
+        start_PS = powershell(command)
+        if start_PS.returncode != 0:
+            print("Error: command 1")
+
+        # Extract the zip file
+        if os.path.isfile(r"C:\Program Files\7-Zip\7z.exe"):
+            command = (
+                r"$ProgressPreference = 'SilentlyContinue' ; Get-ChildItem C:\Program64\Python\temp\LocalPIP.zip | % { & "
+                + '"C:\Program Files\\7-Zip\\7z.exe" "x" $_.fullname "-oC:\\Program64\\Python\\temp\\" }'
+            )
+            start_PS = powershell(command)
+            if start_PS.returncode != 0:
+                print("Error: command 2")
+        else:
+            command = r"$ProgressPreference = 'SilentlyContinue' ; Expand-Archive -LiteralPath 'C:\Program64\Python\temp\LocalPIP.zip' -DestinationPath C:\Program64\Python\temp"
+            start_PS = powershell(command)
+            if start_PS.returncode != 0:
+                print("Error: command 2.5")
+
+        # Copy packages to the find destination folder
+        command = 'Copy-Item -Path "C:\\Program64\\Python\\temp\\LocalPIP-main\\Packages" -Destination "C:\\Program64\\Python" -Force -Recurse'
+        start_PS = powershell(command)
+        if start_PS.returncode != 0:
+            print("Error: command 3")
+
+        # command = (
+        #     'if (Test-Path "C:\\Program64\\Python\\Python38") {if (Test-Path '
+        #     '"C:\\Program64\\Python\\temp\\LocalPIP-main\\Update") {Copy-Item -Path '
+        #     "C:\\Program64\\Python\\temp\\LocalPIP-main\\Update\\* -Destination "
+        #     "C:\\Program64\\Python\\Python38\\Scripts -PassThru -Force}} elseif (Test-Path "
+        #     '"C:\\Program64\\Python\\Python39") {if (Test-Path '
+        #     '"C:\\Program64\\Python\\temp\\LocalPIP-main\\Update") {Copy-Item -Path '
+        #     "C:\\Program64\\Python\\temp\\LocalPIP-main\\Update\\* -Destination "
+        #     "C:\\Program64\\Python\\Python39\\Scripts -PassThru -Force}} "
+        # )
+        # start_PS = powershell(command)
+        # if start_PS.returncode != 0:
+        #     print("Error: command 4")
+
+        command = 'if (Test-Path "C:\\Program64\\Python\\temp") {Remove-Item "C:\\Program64\\Python\\temp" -Recurse -Force}'
+        start_PS = powershell(command)
+        if start_PS.returncode != 0:
+            print("Error: command 5")
+
+        if os.path.isfile(r"C:\Program64\Python\Packages\zlinks.txt"):
+            links = r"C:\Program64\Python\Packages\zlinks.txt"
+            with open(links) as file:
+                for link in file:
+                    if "tensorflow" in link:
+                        link = link.replace(" ", "")
+                        link = link.replace("\n", "")
+                        if "cp39" in link:
+                            tensor39 = f'"{link}"'
+                            tensor39_name = tensor39[tensor39.rfind("/") + 1 :]
+                            tensor39_name = tensor39_name.replace('"', "")
+                        elif "cp38" in link:
+                            tensor38 = f'"{link}"'
+                            tensor38_name = tensor38[tensor38.rfind("/") + 1 :]
+                            tensor38_name = tensor38_name.replace('"', "")
+
+                if sys.version_info.minor == 9:
+                    downloadPath = fr"C:\Program64\Python\Packages\{tensor39_name}"
+                    if proxy_status == 0:
+                        download_no_proxy = fr"$ProgressPreference = 'SilentlyContinue' ; Invoke-WebRequest {tensor39} -OutFile {downloadPath}"
+                        PS_download_noproxy = powershell(download_no_proxy)
+                        if PS_download_noproxy.returncode != 0:
+                            print("Error: command 6")
+                    elif proxy_status == 1:
+
+                        download_with_proxy = f"$ProgressPreference = 'SilentlyContinue' ; $proxyurl = ([System.Net.WebRequest]::GetSystemWebproxy()).GetProxy({tensor39}) ; Invoke-WebRequest {tensor39} -Proxy $proxyurl -ProxyUseDefaultCredentials -OutFile {downloadPath}"
+                        PS_download_proxy = powershell(download_with_proxy)
+                        if PS_download_proxy.returncode != 0:
+                            print("Error: command 7")
+
+                elif sys.version_info.minor == 8:
+                    downloadPath = fr"C:\Program64\Python\Packages\{tensor38_name}"
+
+                    if proxy_status == 0:
+                        download_no_proxy = fr"$ProgressPreference = 'SilentlyContinue' ; Invoke-WebRequest {tensor38} -OutFile {downloadPath}"
+                        PS_download_noproxy = powershell(download_no_proxy)
+                        if PS_download_noproxy.returncode != 0:
+                            print("Error: command 8")
+                    elif proxy_status == 1:
+                        download_with_proxy = f"$ProgressPreference = 'SilentlyContinue' ; $proxyurl = ([System.Net.WebRequest]::GetSystemWebproxy()).GetProxy({tensor38}) ; Invoke-WebRequest {tensor38} -Proxy $proxyurl -ProxyUseDefaultCredentials -OutFile {downloadPath}"
+                        PS_download_proxy = powershell(download_with_proxy)
+                        if PS_download_proxy.returncode != 0:
+                            print("Error: command 9")
+
+        print(
+            "*******************************************************************************************************"
+        )
+        if action == "update":
+            print(f"Localpip repo has been updated successfully!")
+        else:
+            print(f"Localpip repo has been {action}ed successfully!")
+        print(
+            "*******************************************************************************************************"
+        )
+
+
+# defining the command
+def check_action(action):
+    if action == "install".lower():
+        return "install"
+    elif action == "uninstall".lower():
+        return "uninstall"
+    elif action == "upgrade".lower():
+        return "upgrade"
+    elif action == "wheel".lower():
+        return "wheel"
+    elif action == "download".lower():
+        return "download"
+    else:
+        info("Error: wrong option > ", action)
+
+
+# defining the packages folder path
+def check_packages():
+    path_script = os.path.realpath(__file__)
+    path_script = path_script[: path_script.rfind("\\")]
+    package_dir = os.path.isdir(r"C:\Program64\Python\Packages")
+    if package_dir:
+        path = r"C:\Program64\Python\Packages"
+        return path
+    elif any(File.endswith(".whl") for File in os.listdir(path_script)):
+        path = path_script
+        return path
+    else:
+        try:
+            download_packages("install")
+            path = r"C:\Program64\Python\Packages"
+            return path
+        except Exception as e:
+            print(e, e.args)
+            print("Connection error: packages download failed.")
+            exitapp()
+
+
+def select_file():
+    filetypes = (
+        ('text files', '*.txt'),
+    )
+
+    filename = fd.askopenfilename(
+        title='Open a file',
+        initialdir='/',
+        filetypes=filetypes)
+
+    showinfo(
+        title='Selected File',
+        message=filename
+    )
+    return filename
+
+
+def main(args=None):
+    try:
+        if len(sys.argv) == 1:
+            info("Status: Not enough", "arguments")
+
+        # mypip list
+        elif "list" in sys.argv:
+            pip_list()
+
+        # initialzie mypip update/ download
+        elif len(sys.argv) == 2:
+            if sys.argv[1].lower() == "update":
+                download_packages("update")
+            elif sys.argv[1].lower() == "download" or sys.argv[1].lower() == "install":
+                if os.path.isdir(fr"C:\Program64\Python\Packages"):
+                    download = input(
+                        "LocalPIP repo is already installed. Did you mean to update it? (yes/no): "
+                    ).lower()
+                    if download.startswith("y"):
+                        download_packages("update")
+                else:
+                    download_packages("install")
+            elif sys.argv[1].lower() == "about":
+                localpip_about()
+                exitapp()
+            elif sys.argv[1].lower() == "help" or sys.argv[1].lower() == "/?":
+                localpip_about()
+                info("Enjoy", "coding!")
+
+            elif (
+                sys.argv[1].lower() == "remove"
+                or sys.argv[1].lower() == "delete"
+                or sys.argv[1].lower() == "uninstall"
+            ):
+                localpip_remove()
+
+            elif sys.argv[1].lower() == "upgrade":
+                localpip_upgrade()
+
+            elif (
+                sys.argv[1].lower() == "--version"
+                or sys.argv[1].lower() == "--v"
+                or sys.argv[1].lower() == "version"
+            ):
+                print(f"localpip {localpip_version}")
+                exitapp()
+
+            else:
+                info("Status: command is too short", "...")
+
+        # install packages
+        elif len(sys.argv) == 3:
+            action = check_action(sys.argv[1])
+            if action == "install" or action == "upgrade":
+                path = check_packages()
+                if (
+                    sys.argv[2] == "all".lower()
+                    or sys.argv[2] == "tout".lower()
+                    or sys.argv[2] == "tous".lower()
+                ):
+                    requirements = fr"{path}\requirements.txt"
+                    with open(requirements) as file:
+                        for req in file:
+                            install(req, action, path)
+                elif (
+                    sys.argv[2] == "req".lower()
+                    or sys.argv[2] == "requirement".lower()
+                    or sys.argv[2] == "requirements".lower()
+                    or sys.argv[2] == "exigence".lower()
+                ):
+                    requirements = select_file()
+                    try:
+                        with open(requirements) as file:
+                            for req in file:
+                                install(req, action, path)
+                    except:
+                        info("Error: ", "check the requirement file!")
+                        exitapp()
+                else:
+                    req = sys.argv[2]
+                    install(req, action, path)
+            elif action == "uninstall":
+                req = sys.argv[2]
+                if (
+                    sys.argv[2] == "all"
+                    or sys.argv[2] == "tous"
+                    or sys.argv[2] == "tout"
+                ):
+                    print()
+                    print(
+                        "*******************************************************************************************************"
+                    )
+                    print("Please enter the package name you want to uninstall.")
+                    print(
+                        "*******************************************************************************************************"
+                    )
+                    print()
+                else:
+                    install(req, action, None)
+            else:
+                req = sys.argv[2]
+                install(req, action, None)
+
+        elif len(sys.argv) > 3:
+            action = check_action(sys.argv[1])
+            if action != "uninstall" or action != "download" or action != "wheel":
+                path = check_packages()
+            requirements = sys.argv[2:]
+            for req in requirements:
+                install(req, action, path)
+
+    except Exception as e:
+        info(e, e.args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
