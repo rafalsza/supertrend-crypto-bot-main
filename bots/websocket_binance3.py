@@ -75,8 +75,8 @@ def telebot_sell_data(order):
                               f'amount: {qty}\ncost: {cost} USDT\nfee: {fee} BNB')
 
 
-def telebot_buy_data(order):
-    json_d = json.dumps(order)
+def telebot_buy_data(order_buy):
+    json_d = json.dumps(order_buy)
     json_ = json.loads(json_d)
     typeorder = json_['info']['type']
     price_buy = json_['price']
@@ -193,10 +193,10 @@ def on_message(ws, message):
             print(f"changed to uptrend, BUY {symbol}")
             if not in_position:
                 # order = exchange.create_limit_buy_order(symbol1, amount, df['close'][last_row_index])
-                order = exchange.create_market_buy_order(symbol=symbol1, amount=amount)
-                print(order)
-                telebot_buy_data(order)
-                json_d = json.dumps(order)
+                order_buy = exchange.create_market_buy_order(symbol=symbol1, amount=amount)
+                print(order_buy)
+                telebot_buy_data(order_buy)
+                json_d = json.dumps(order_buy)
                 json_ = json.loads(json_d)
                 price = float(json_['price'])
                 price_sl = price - (price * 0.036)  # -3,6%
